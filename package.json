@@ -1,8 +1,8 @@
 {
-    "name": "Scheduled Player",
-    "author": "Florian Wesch <fw@info-beamer.com>",
+    "name": "Scheduled Player (modified)",
+    "author": "Florian Wesch. Modified by Cactus",
     "desc": "A schedulable playlist player with custom pages, plugins and animations",
-    "repository": "https://github.com/info-beamer/package-scheduled-player",
+    "repository": "https://github.com/Kimerudeveloper1/package-scheduled-player",
     "version": "beta17",
     "lifecycle": "production",
     "platforms": ["pi/epoch-1", "pi-4"],

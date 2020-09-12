@@ -3,7 +3,8 @@
     "custom_ui": "config.html",
     "control_ui": "control.html",
     "permissions": {
-        "gpio": "Can access GPIO"
+        "gpio": "Can access GPIO",
+        "network": "Needs to use websocket"
     },
     "optional": [
         "COPYRIGHT",
@@ -16,6 +17,12 @@
         ".gitignore"
     ],
     "options": [{
+        "title": "PlayerUid",
+        "ui_width": 8,
+        "name": "playeruid",
+        "type": "string",
+        "default": ""
+    }, {
         "title": "Timezone",
         "ui_width": 4,
         "name": "timezone",

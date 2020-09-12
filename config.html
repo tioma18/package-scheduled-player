@@ -382,6 +382,11 @@
                 @onSelected="onSetConfigValue('rotation', $event)">
               </select-dropdown>
             </div>
+			<div class='col-xs-4'>
+				<label class='field-label'>Player Uid</label>
+				<br/>
+				<input v-model="playeruid"/>
+			</div>
             <div class='col-xs-5'>
               <label class='field-label'>Target resolution</label>
               <select-dropdown
@@ -398,7 +403,6 @@
                 type='checkbox'
                 :checked="poweroff"
                 @change="onSetConfigValue('poweroff', $event.target.checked)">
-                (not implemented yet)
             </div>
           </div>
           <br/>
@@ -1206,6 +1210,15 @@
       <div class='tile-option'>
         <label class='field-label'>Image Configuration</label><br/>
         <div class='row'>
+          <div class="checkbox">
+            <label>
+              <input
+                type="checkbox"
+                :checked="config.kenburns"
+                @change="onSetValue('kenburns', $event.target.checked)">
+                Ken Burns
+            </label>
+          </div>
           <div class='col-xs-4'>
             <select-dropdown
               :selected="config.fade_time || 0"

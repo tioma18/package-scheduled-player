@@ -14,6 +14,7 @@ from evdev import ecodes, InputDevice, list_devices
 from evdev.events import KeyEvent
 from hosted import config, node, device
 from ibquery import InfoBeamerQuery
+from websocket import create_connection #added
 
 config.restart_on_update()
 
@@ -54,7 +55,7 @@ try:
     local_now = utc_now.astimezone(schedule_tz)
     simulated = schedule_tz.localize(datetime(int(y), int(m), int(d), int(ho), int(mi), 00))
 
-    diff =  simulated - local_now
+    diff = local_now.utcoffset()
 except:
     diff = timedelta()
 
@@ -72,7 +73,8 @@ def update_devices():
         del devices[device_name]
 
 def send_clock(tz):
-    utc_now = datetime.now(pytz.utc) + diff
+    utc_now = datetime.now(pytz.utc)
+    # print >>sys.stderr, 'utc_now', utc_now
 
     unix = timegm(utc_now.timetuple()) + utc_now.microsecond / 1000000.
     local_now = utc_now.astimezone(tz)
@@ -183,15 +185,40 @@ def monitor_gpio():
                 pin = pin,
             )))
 
+screen_state = True
+screen_on_time = 0
 def screen_toggle():
-    ib = InfoBeamerQuery("127.0.0.1")
-    con = ib.node('root/__fallback__').io(raw=True)
-    for line in con:
-        line = line.strip()
-        print >>sys.stderr, "screen power: %s" % (not config.poweroff or line == "1",)
-        # device.screen(
-        #     on = not config.poweroff or line == "1"
-        # )
+    global screen_state
+    global screen_on_time
+
+    utc_now = datetime.now(pytz.utc)
+    unix = timegm(utc_now.timetuple()) + utc_now.microsecond / 1000000.
+    local_now = utc_now.astimezone(schedule_tz)
+    diff = local_now.utcoffset()
+    # print >>sys.stderr, "LOOOK: UNIX %s" % unix
+    # print >>sys.stderr, "LOOOK: screen_on_time %s" % screen_on_time
+    # print >>sys.stderr, "LOOOK: local_now %s" % local_now
+    # print >>sys.stderr, "LOOOK: diff %s" % diff
+    
+    if screen_on_time == 0:
+        ib = InfoBeamerQuery("127.0.0.1")
+        con = ib.node('root/__fallback__').io(raw=True)
+        for line in con:
+            line = int(float(line.strip())) - diff.seconds
+            # print >>sys.stderr, "LOOOK LINE: %s" % line
+            # print >>sys.stderr, "LOOOK: %s" % screen_state
+            if line > -1 and screen_state:
+                device.screen(on = False)
+                screen_state = False
+                screen_on_time = line
+                break
+    else:
+        if unix >= screen_on_time:
+            device.screen(on = True)
+            screen_state = True
+            screen_on_time = 0
+            time.sleep(4)
+    time.sleep(1)
 
 def run_in_thread(fn):
     def wrap():
@@ -205,7 +232,39 @@ def run_in_thread(fn):
     thread.daemon = True
     thread.start()
 
+def send_to_lua(text):
+    print(text)
+    bufSize = 1000
+    length = len(text)
+    chunksNumber = length // bufSize
+    lastChunkSize = length % bufSize
+    
+    for i in xrange(chunksNumber):
+        node.send('/socket/ticker:%s' % text[i*bufSize:(i+1)*bufSize])
+    node.send('/socket/end:%s' % text[chunksNumber*bufSize:chunksNumber*bufSize + lastChunkSize])
+
+def init_websocket():
+    while True:
+        try:
+            url = "wss://rsstickeragent.kimerucore.net/ws/" + config['playeruid']
+            ws = create_connection(url)
+            try:
+                while True:
+                    result = ws.recv()
+                    send_to_lua(result)
+            except Exception as ex:
+                print(ex)
+                ws.close()
+        except Exception as ex1:
+            print(ex1)
+
 if __name__ == "__main__":
+    print >>sys.stderr, "MAIN"
+    device.screen(on = True)
+    thr = threading.Thread(target=init_websocket, args=(), kwargs={})
+    thr.start() # Will run "foo"
+    thr.is_alive() # Will return whether foo is running currently
+
     run_in_thread(send_time)
     run_in_thread(screen_toggle)
     run_in_thread(monitor_input)

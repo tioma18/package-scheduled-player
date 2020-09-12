@@ -532,6 +532,16 @@ Vue.component('config-ui', {
           key: 'background', value: background,
         });
       }
+    },
+	playeruid: {
+      get() {
+        return this.config.playeruid;
+      },
+      set(value) {
+		this.$store.commit('config_update', {
+          key: 'playeruid', value: value
+        });
+      },
     }
   },
   methods: {

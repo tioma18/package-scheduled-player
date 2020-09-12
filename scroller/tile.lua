@@ -5,32 +5,57 @@ local json = require "json"
 local font
 local color
 local speed
+local background_color
 
 local M = {}
 
 -- { source: { text1, text2, text3, ...} }
 local content = {__myself__ = {}}
+local tempContent = {__myself__ = {}}
 
-local function mix_content()
-    local out = {}
-    local offset = 1
-    while true do
-        local added = false
-        for tile, items in pairs(content) do
-            if items[offset] then
-                out[#out+1] = items[offset]
-                added = true
-            end
-        end
-        if not added then
-            break
-        end
-        offset = offset + 1
-    end
-    return out
+local tempTickerShownCount = 0
+local isReset = false
+local function generator()
+    local index = 1
+	
+    return {
+        next = function(self)
+			if #content.__myself__ < 1 and #tempContent.__myself__ < 1 then
+				return nil
+			else				
+				-- temp ticker
+				if tempTickerShownCount ~= 0 then
+					if isReset then
+						index = 1
+						isReset = false
+					end
+					
+					index = index + 1
+					local text = tempContent.__myself__[index - 1]
+					
+					if index > #tempContent.__myself__ then
+						index = 1
+						tempTickerShownCount = tempTickerShownCount - 1
+					end
+					
+					return text
+				end
+				
+								
+				-- origin ticker
+				if index > #content.__myself__ or isReset then
+					index = 1
+					isReset = false
+				end
+				
+				index = index + 1
+				return content.__myself__[index - 1]
+			end
+        end;
+    }
 end
 
-local feed = util.generator(mix_content).next
+local feed = generator().next
 
 api.add_listener("scroller", function(tile, value)
     print("got new scroller content from " .. tile)
@@ -41,7 +66,7 @@ local items = {}
 local current_left = 0
 local last = sys.now()
 
-local function draw_scroller(x, y, w, h)
+local function draw_scroller(x, y, w, h, config)
     local now = sys.now()
     local delta = now - last
     last = now
@@ -129,32 +154,117 @@ function M.updated_config_json(config)
     font = resource.load_font(api.localized(config.font.asset_name))
     color = config.color
     speed = config.speed
+	background_color = config.background_color
 
-    content.__myself__ = {}
-    local items = content.__myself__
-    for idx = 1, #config.texts do
-        local item = config.texts[idx]
-        local color
-        if item.color.a ~= 0 then
-            color = item.color
-        end
-
-        -- 'show' either absent or true?
-        if item.show ~= false then
-            items[#items+1] = {
-                text = item.text,
-                blink = item.blink,
-                color = color,
-            }
-        end
-    end
-    print("configured scroller content")
-    pp(items)
+	-- NOT NEED TO GET TEXT FROM CONFIG
 end
+
+local concatter = function(s)
+	local t = { }
+	for k,v in ipairs(s) do
+		t[#t+1] = tostring(v)
+	end
+	return table.concat(t,"")
+end
+
+local processOriginTicker = function(recievedDataOject)
+	local newTextArray = recievedDataOject.TickerText
+	local oldTexts = {}
+	if recievedDataOject.IsResetText == false then
+		oldTexts = content.__myself__
+	end
+		
+	print(#newTextArray)
+	local texts = {}
+		
+	-- add to start. Order from newest to oldest
+	local sum = #oldTexts + #newTextArray
+	if sum > 20 then
+		texts = oldTexts
+		for idx = 20 - #newTextArray, 1, -1 do
+			texts[idx + #newTextArray] = oldTexts[idx]
+		end 
+		for idx = 1, #newTextArray do
+			texts[idx] = {text = newTextArray[idx]}	
+		end
+	else
+		texts = oldTexts
+		for idx = sum - #newTextArray, 1, -1 do
+			texts[idx + #newTextArray] = oldTexts[idx]
+		end 
+		for idx = 1, #newTextArray do
+			texts[idx] = {text = newTextArray[idx]}	
+		end
+	end
+		
+		-- add to end. Order from oldest to newest
+		-- local sum = #oldTexts + #newTextArray
+		-- if sum > 20 then
+			-- for idx = 1, #oldTexts - sum + 20 do
+				-- texts[idx] = oldTexts[sum - 20 + idx]	
+			-- end
+			-- for idx = 1, #newTextArray do
+				-- texts[#texts + 1] = {text = newTextArray[idx]}	
+			-- end
+		-- else
+			-- texts = oldTexts
+			-- for idx = 1, #newTextArray do
+				-- texts[#texts + 1] = {text = newTextArray[idx]}	
+			-- end
+		-- end
+		
+	-- print("UPDATED TICKER TEXT !!!!!!!!!!!!!!!")
+	-- for idx = 1, #texts do
+		-- print(texts[idx].text)
+	-- end
+		
+	return texts
+end
+
+local processTempTicker = function(recievedDataOject)
+	local newTextArray = recievedDataOject.TickerText
+	local texts = {}
+	
+	for idx = 1, #newTextArray do
+		texts[idx] = {text = newTextArray[idx]}
+	end 
+	
+	tempTickerShownCount = recievedDataOject.ShownCount
+	-- print("UPDATED TEMP TICKER TEXT !!!!!!!!!!!!!!!")
+	-- for idx = 1, #texts do
+		-- print(texts[idx].text)
+	-- end
+	
+	return texts
+end
+
+local data = {}
+util.data_mapper{
+	["socket/ticker"] = function(text)
+		print(text)
+		data[#data + 1] = text
+	end;
+	["socket/end"] = function(text)
+		data[#data + 1] = text
+		
+		local allDataString = concatter(data)
+		local recievedDataOject = json.decode(allDataString)
+		
+		if recievedDataOject.ShownCount == 0 then
+			content.__myself__ = processOriginTicker(recievedDataOject)
+		else
+			tempContent.__myself__ = processTempTicker(recievedDataOject)
+		end
+		
+		isReset = true
+		data = {}
+	end;
+}
 
 function M.task(starts, ends, config, x1, y1, x2, y2)
     for now in api.frame_between(starts, ends) do
         api.screen.set_scissor(x1, y1, x2, y2)
+        resource.create_colored_texture(background_color.r, background_color.g, background_color.b, 1):draw(x1, y1, x2, y2, background_color.a)
         draw_scroller(x1, y1, x2-x1, y2-y1)
         api.screen.set_scissor()
     end

@@ -20,14 +20,14 @@
         "title": "Scroll Speed",
         "ui_width": 3,
         "name": "speed",
-        "type": "select",
-        "options": [
-            [ 50, "Slow"],
-            [100, "Normal"],
-            [140, "Faster"],
-            [200, "Even Faster"]
-        ],
+        "type": "integer",
         "default": 100
+    }, {
+        "title": "Ticker Background Color",
+        "ui_width": 4,
+        "type": "color",
+        "name": "background_color",
+        "default": [0,0,0,0.5]
     },
 
     {

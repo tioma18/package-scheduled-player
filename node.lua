@@ -273,7 +273,7 @@ local ImageCache = ImageCache()
 
 local function Clock()
     local has_time = false
-    local time = {diff=0}
+    local time = {}
     local updated = sys.now()
 
     local function since_midnight()
@@ -296,7 +296,7 @@ local function Clock()
             return string.format("%02d:%02d", math.floor(t / 3600), math.floor(t % 3600 / 60))
         end;
         unix = function()
-            return os.time() + time.diff
+            return os.time()
         end;
         week_hour = function()
             return time.week_hour
@@ -642,10 +642,10 @@ local function ImageTile(asset, config, x1, y1, x2, y2)
             end
 
             local paths = {
-                {from = {x=0.0,  y=0.0,  s=1.0 }, to = {x=0.08, y=0.08, s=0.9 }},
-                {from = {x=0.05, y=0.0,  s=0.93}, to = {x=0.03, y=0.03, s=0.97}},
-                {from = {x=0.02, y=0.05, s=0.91}, to = {x=0.01, y=0.05, s=0.95}},
-                {from = {x=0.07, y=0.05, s=0.91}, to = {x=0.04, y=0.03, s=0.95}},
+                {from = {x=0.0, y=0.0, s=1.0}, to = {x=0.0, y=0.0, s=0.9}},
+				{from = {x=0.0, y=0.0, s=1.0}, to = {x=0.1, y=0.1, s=0.9}},
+				{from = {x=0.0, y=0.0, s=1.0}, to = {x=0.1, y=0.0, s=0.9}},
+				{from = {x=0.0, y=0.0, s=1.0}, to = {x=0.0, y=0.1, s=0.9}},
             }
 
             local path = paths[math.random(1, #paths)]
@@ -1469,10 +1469,10 @@ local function Scheduler(page_source, job_queue)
         next_schedule = scheduled_until - SCHEDULE_LOOKAHEAD
         showing_fallback = page.is_fallback
 
-        tcp_clients.send(
-            "root/__fallback__",
-            page.is_fallback and "1" or "0"
-        )
+        -- tcp_clients.send(
+            -- "root/__fallback__",
+            -- page.is_fallback and "1" or "0"
+        -- )
         -- print("FALLBACK?", showing_fallback)
     end
 
@@ -1593,8 +1593,13 @@ local function PageSource()
 
     local fallback
     local debug_schedule_id, debug_page_id
+    local localConfig
+
+    local time_shifts_index = 1
+    local time_shifts = {}
 
     node.event("config_updated", function(config)
+        localConfig = config
         schedules = config.schedules
 
         for _, schedule in ipairs(schedules) do
@@ -1740,6 +1745,12 @@ local function PageSource()
                     if since_midnight >= start_sec and since_midnight < end_sec then
                         log("schedule", "span %s matches", span_id)
                         return true
+					elseif (since_midnight < start_sec) then
+						-- print(os.time(clock.today()))
+						-- print(start_sec)
+						-- print(clock.unix())
+						time_shifts[time_shifts_index] = os.time(clock.today()) - 12 * 60 * 60 + start_sec
+						time_shifts_index = time_shifts_index + 1
                     end
                 end
             end
@@ -1906,6 +1917,7 @@ local function PageSource()
         return pages
     end
 
+    local is_sent = false
     local function generate_cycle()
         local debug_page = get_debug_page()
 
@@ -1916,9 +1928,23 @@ local function PageSource()
         end
 
         if #cycle_pages == 0 then
-            log("generate_cycle", "no scheduled pages. using fallback")
-            cycle_pages = get_fallback_cycle()
-        end
+			if localConfig.poweroff then
+				if #time_shifts > 0 then
+					table.sort(time_shifts)
+					tcp_clients.send("root/__fallback__", time_shifts[1])
+					is_sent = true
+				else
+					-- no content at all. send a year period
+
+					tcp_clients.send("root/__fallback__", os.time() + 31536000)
+				end
+			else
+				cycle_pages = get_fallback_cycle()
+				log("generate_cycle", "no scheduled pages. using fallback")
+			end
+		else
+			tcp_clients.send("root/__fallback__", -1)
+		end
 
         log("generate_cycle", "generated cycle with %d pages", #cycle_pages)
     end
@@ -1953,6 +1979,35 @@ end
 local page_source = PageSource()
 local job_queue = JobQueue()
 local scheduler = Scheduler(page_source, job_queue)
+
+local screen_setup
+
+local function rotate(degree)
+	WIDTH, HEIGHT = NATIVE_WIDTH, NATIVE_HEIGHT
+    if degree == 0 then
+        return function() end
+    elseif degree == 90 then
+		WIDTH, HEIGHT = NATIVE_HEIGHT, NATIVE_WIDTH
+        return function()
+			print("rotate 90")
+			gl.translate(NATIVE_WIDTH, 0)
+            gl.rotate(90, 0, 0, 1)
+        end
+    elseif degree == 180 then
+        return function()
+			gl.translate(WIDTH, HEIGHT)
+            gl.rotate(180, 0, 0, 1)
+        end
+    elseif degree == 270 then
+		WIDTH, HEIGHT = NATIVE_HEIGHT, NATIVE_WIDTH
+        return function()
+			gl.translate(0, NATIVE_HEIGHT)
+            gl.rotate(270, 0, 0, 1)
+        end
+    else
+        error("unsupported rotation")
+    end
+end
 
 util.json_watch("config.json", function(config)
     node.dispatch("config_updated", config)
