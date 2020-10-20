@@ -195,18 +195,18 @@ def screen_toggle():
     unix = timegm(utc_now.timetuple()) + utc_now.microsecond / 1000000.
     local_now = utc_now.astimezone(schedule_tz)
     diff = local_now.utcoffset()
-    # print >>sys.stderr, "LOOOK: UNIX %s" % unix
-    # print >>sys.stderr, "LOOOK: screen_on_time %s" % screen_on_time
-    # print >>sys.stderr, "LOOOK: local_now %s" % local_now
-    # print >>sys.stderr, "LOOOK: diff %s" % diff
+    print >>sys.stderr, "LOOOK: UNIX %s" % unix
+    print >>sys.stderr, "LOOOK: screen_on_time %s" % screen_on_time
+    print >>sys.stderr, "LOOOK: local_now %s" % local_now
+    print >>sys.stderr, "LOOOK: diff %s" % diff
     
     if screen_on_time == 0:
         ib = InfoBeamerQuery("127.0.0.1")
         con = ib.node('root/__fallback__').io(raw=True)
         for line in con:
             line = int(float(line.strip())) - diff.seconds
-            # print >>sys.stderr, "LOOOK LINE: %s" % line
-            # print >>sys.stderr, "LOOOK: %s" % screen_state
+            print >>sys.stderr, "LOOOK LINE: %s" % line
+            print >>sys.stderr, "LOOOK: %s" % screen_state
             if line > -1 and screen_state:
                 device.screen(on = False)
                 screen_state = False
