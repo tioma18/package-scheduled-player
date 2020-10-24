@@ -1746,10 +1746,7 @@ local function PageSource()
                         log("schedule", "span %s matches", span_id)
                         return true
 					elseif (since_midnight < start_sec) then
-						-- print(os.time(clock.today()))
-						-- print(start_sec)
-						-- print(clock.unix())
-						time_shifts[time_shifts_index] = os.time(clock.today()) - 12 * 60 * 60 + start_sec
+						time_shifts[time_shifts_index] = os.time(schedule_clock.today()) - 12 * 60 * 60 + start_sec
 						time_shifts_index = time_shifts_index + 1
                     end
                 end
