@@ -153,7 +153,9 @@ def monitor_input():
             # device disconnected
             pass
 
+screen_on_time = 0
 def send_time():
+     print >>sys.stderr, "LOOOK: screen_on_time %s" % screen_on_time
     if time.time() < 10000000:
         print >>sys.stderr, "too soon"
         time.sleep(1)
@@ -186,7 +188,6 @@ def monitor_gpio():
             )))
 
 screen_state = True
-screen_on_time = 0
 def screen_toggle():
     global screen_state
     global screen_on_time
