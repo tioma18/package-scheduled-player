@@ -1931,9 +1931,9 @@ local function PageSource()
 					tcp_clients.send("root/__fallback__", time_shifts[1])
 					is_sent = true
 				else
-					-- no content at all. send a day period
+					-- no content at all. send a hour period
 
-					tcp_clients.send("root/__fallback__", os.time() + 86400)
+					tcp_clients.send("root/__fallback__", os.time() + 3600)
 				end
 			else
 				cycle_pages = get_fallback_cycle()
