@@ -1914,7 +1914,6 @@ local function PageSource()
         return pages
     end
 
-    local is_sent = false
     local function generate_cycle()
         local debug_page = get_debug_page()
 
@@ -1929,11 +1928,13 @@ local function PageSource()
 				if #time_shifts > 0 then
 					table.sort(time_shifts)
 					tcp_clients.send("root/__fallback__", time_shifts[1])
-					is_sent = true
 				else
-					-- no content at all. send a hour period
+					-- no content at all. send time till next date
 
-					tcp_clients.send("root/__fallback__", os.time() + 3600)
+					local dt = os.date("*t")
+					local remaining_seconds = (dt.hour * -3600 - dt.min * 60 - dt.sec) % 86400
+					
+					tcp_clients.send("root/__fallback__", os.time() + remaining_seconds + 5)
 				end
 			else
 				cycle_pages = get_fallback_cycle()
