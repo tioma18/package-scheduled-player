@@ -215,7 +215,8 @@ def screen_toggle():
                     screen_state = False
                     screen_on_time = line
                     break
-        except InfoBeamerQueryException:
+        except InfoBeamerQueryExceptionas ex1:
+            print(ex1)
             device.restart_infobeamer()
     else:
         if unix >= screen_on_time:
