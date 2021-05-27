@@ -202,18 +202,21 @@ def screen_toggle():
     print >>sys.stderr, "LOOOK: diff %s" % diff
     
     if screen_on_time == 0:
-        ib = InfoBeamerQuery("127.0.0.1")
-        con = ib.node('root/__fallback__').io(raw=True)
-        for line in con:
-            print >>sys.stderr, "LOOOK LINE ORIGINAL: %s" % line
-            line = int(float(line.strip())) - diff.seconds
-            print >>sys.stderr, "LOOOK LINE: %s" % line
-            print >>sys.stderr, "LOOOK: %s" % screen_state
-            if line > -1 and screen_state:
-                device.screen(on = False)
-                screen_state = False
-                screen_on_time = line
-                break
+        try:
+            ib = InfoBeamerQuery("127.0.0.1")
+            con = ib.node('root/__fallback__').io(raw=True)
+            for line in con:
+                print >>sys.stderr, "LOOOK LINE ORIGINAL: %s" % line
+                line = int(float(line.strip())) - diff.seconds
+                print >>sys.stderr, "LOOOK LINE: %s" % line
+                print >>sys.stderr, "LOOOK: %s" % screen_state
+                    if line > -1 and screen_state:
+                    device.screen(on = False)
+                    screen_state = False
+                    screen_on_time = line
+                    break
+        except InfoBeamerQueryException:
+            device.restart_infobeamer()
     else:
         if unix >= screen_on_time:
             device.screen(on = True)
