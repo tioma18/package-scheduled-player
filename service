@@ -211,10 +211,10 @@ def screen_toggle():
                 print >>sys.stderr, "LOOOK LINE: %s" % line
                 print >>sys.stderr, "LOOOK: %s" % screen_state
                     if line > -1 and screen_state:
-                    device.screen(on = False)
-                    screen_state = False
-                    screen_on_time = line
-                    break
+                        device.screen(on = False)
+                        screen_state = False
+                        screen_on_time = line
+                        break
         except InfoBeamerQueryExceptionas ex1:
             print(ex1)
             device.reboot()
