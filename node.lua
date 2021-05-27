@@ -1931,10 +1931,7 @@ local function PageSource()
 				else
 					-- no content at all. send time till next date
 
-					local dt = os.date("*t")
-					local remaining_seconds = (dt.hour * -3600 - dt.min * 60 - dt.sec) % 86400
-					
-					tcp_clients.send("root/__fallback__", os.time() + remaining_seconds + 5)
+					tcp_clients.send("root/__fallback__", os.time() + 3600)
 				end
 			else
 				cycle_pages = get_fallback_cycle()
