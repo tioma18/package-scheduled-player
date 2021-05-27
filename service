@@ -216,7 +216,7 @@ def screen_toggle():
                     screen_on_time = line
                     break
         except InfoBeamerQueryExceptionas as ex1:
-            print(ex1)
+            print('CAUGHT')
             device.reboot()
     else:
         if unix >= screen_on_time:
