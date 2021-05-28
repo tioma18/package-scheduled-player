@@ -188,9 +188,11 @@ def monitor_gpio():
             )))
 
 screen_state = True
+hasInfobeamerProcessError = False
 def screen_toggle():
     global screen_state
     global screen_on_time
+    global hasInfobeamerProcessError
 
     utc_now = datetime.now(pytz.utc)
     unix = timegm(utc_now.timetuple()) + utc_now.microsecond / 1000000.
@@ -200,11 +202,13 @@ def screen_toggle():
     print >>sys.stderr, "LOOOK: screen_on_time %s" % screen_on_time
     print >>sys.stderr, "LOOOK: local_now %s" % local_now
     print >>sys.stderr, "LOOOK: diff %s" % diff
+     print >>sys.stderr, "LOOOK: hasInfobeamerProcessError %s" % hasInfobeamerProcessError
     
     if screen_on_time == 0:
         try:
             ib = InfoBeamerQuery("127.0.0.1")
             con = ib.node('root/__fallback__').io(raw=True)
+            hasInfobeamerProcessError = False
             for line in con:
                 print >>sys.stderr, "LOOOK LINE ORIGINAL: %s" % line
                 line = int(float(line.strip())) - diff.seconds
@@ -218,11 +222,13 @@ def screen_toggle():
         except Exception as ex1:
             print >>sys.stderr, "CAUGHT"
             device.screen(on = False)
-            #screen_on_time = unix + 60 #wait a minute for infobeamer process to start
-            time.sleep(60)
-            device.reboot()
+            hasInfobeamerProcessError = True
+            screen_on_time = unix + 60 * 2 #wait 2 minutes
     else:
         if unix >= screen_on_time:
+            if hasInfobeamerProcessError:
+                device.reboot()
+            
             device.screen(on = True)
             screen_state = True
             screen_on_time = 0
