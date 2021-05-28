@@ -7,8 +7,7 @@
     "lifecycle": "production",
     "platforms": ["pi/epoch-1", "pi-4"],
     "runtime": {
-        "outside_sources": true,
-        "always_run": true
+        "outside_sources": true
     },
     "offline": {
         "support": "maybe",
