@@ -229,7 +229,7 @@ def screen_toggle():
     else:
         if unix >= screen_on_time:
             if hasInfobeamerProcessError:
-                rebootCount++
+                rebootCount += 1
                 if (rebootCount < 10)
                     file.write(rebootCount)
                     file.close()
