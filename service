@@ -291,7 +291,7 @@ if __name__ == "__main__":
     thr.start() # Will run "foo"
     thr.is_alive() # Will return whether foo is running currently
     
-    file = open("localConfig.txt", "a")
+    file = open("localConfig.txt", "w+")
     for line in file:
         rebootCount = int(line.strip('\n')
     file.seek(0, 0)
