@@ -219,7 +219,6 @@ def screen_toggle():
             print >>sys.stderr, "CAUGHT"
             #screen_on_time = unix + 60 #wait a minute for infobeamer process to start
             device.restart_infobeamer()
-            device.screen(on = False)
             #screen_state = False
             time.sleep(60)
     else:
