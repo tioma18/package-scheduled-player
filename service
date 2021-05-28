@@ -195,6 +195,7 @@ def screen_toggle():
     global screen_on_time
     global hasInfobeamerProcessError
     global rebootCount
+    global file
 
     utc_now = datetime.now(pytz.utc)
     unix = timegm(utc_now.timetuple()) + utc_now.microsecond / 1000000.
@@ -294,9 +295,9 @@ if __name__ == "__main__":
     thr.is_alive() # Will return whether foo is running currently
     
     file = open("localConfig.txt", "w+")
-    #for line in file:
-        #rebootCount = int(line.strip('\n')
-        #print >>sys.stderr, "LOOOK rebootCount: %s" % rebootCount
+    for line in file:
+        rebootCount = int(line.strip('\n')
+        print >>sys.stderr, "LOOOK rebootCount: %s" % rebootCount
 
     run_in_thread(send_time)
     run_in_thread(screen_toggle)
