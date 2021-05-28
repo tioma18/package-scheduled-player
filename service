@@ -18,6 +18,8 @@ from websocket import create_connection #added
 
 config.restart_on_update()
 
+screen_on_time = 0
+
 schedule_tz = pytz.timezone(config.timezone)
 
 def iter_tiles(types=None):
@@ -153,7 +155,6 @@ def monitor_input():
             # device disconnected
             pass
 
-screen_on_time = 0
 def send_time():
     print >>sys.stderr, "LOOOK: screen_on_time %s" % screen_on_time
     if time.time() < 10000000:
