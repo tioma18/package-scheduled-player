@@ -204,6 +204,7 @@ def screen_toggle():
     print >>sys.stderr, "LOOOK: local_now %s" % local_now
     print >>sys.stderr, "LOOOK: diff %s" % diff
     print >>sys.stderr, "LOOOK: hasInfobeamerProcessError %s" % hasInfobeamerProcessError
+    print >>sys.stderr, "LOOOK rebootCount: %s" % rebootCount
     
     if screen_on_time == 0:
         try:
