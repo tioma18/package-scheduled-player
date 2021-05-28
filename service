@@ -298,7 +298,6 @@ if __name__ == "__main__":
     file = open("localConfig.txt", "a")
     for line in file:
         rebootCount = int(line.strip('\n')
-
     run_in_thread(send_time)
     run_in_thread(screen_toggle)
     run_in_thread(monitor_input)
