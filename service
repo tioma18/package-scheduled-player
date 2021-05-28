@@ -222,8 +222,6 @@ def screen_toggle():
                     break
         except Exception as ex1:
             print >>sys.stderr, "CAUGHT"
-            if hasInfobeamerProcessError:
-                device.reboot()
             device.screen(on = False)
             hasInfobeamerProcessError = True
             if screen_on_time < unix:
@@ -231,7 +229,11 @@ def screen_toggle():
     else:
         if unix >= screen_on_time:
             if hasInfobeamerProcessError:
-                device.reboot()
+                rebootCount++
+                if (rebootCount < 10)
+                    file.write(rebootCount)
+                    file.close()
+                    device.reboot()
             
             device.screen(on = True)
             screen_state = True
@@ -277,12 +279,25 @@ def init_websocket():
         except Exception as ex1:
             print(ex1)
 
+file = None
+rebootCount = 0
+            
 if __name__ == "__main__":
+    global file
+    global rebootCount
     print >>sys.stderr, "MAIN"
     device.screen(on = True)
     thr = threading.Thread(target=init_websocket, args=(), kwargs={})
     thr.start() # Will run "foo"
     thr.is_alive() # Will return whether foo is running currently
+    
+    f=open('D:\\Emmanu\\project-data\\color.txt',"r")
+    for line in f:
+        g_colour_list.append(line.strip('\n'))
+    print g_colour_list
+    file = open("localConfig.txt", "a")
+    for line in file:
+        rebootCount = int(line.strip('\n')
 
     run_in_thread(send_time)
     run_in_thread(screen_toggle)
