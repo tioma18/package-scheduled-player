@@ -223,7 +223,7 @@ def screen_toggle():
             print >>sys.stderr, "CAUGHT"
             device.screen(on = False)
             hasInfobeamerProcessError = True
-            if screen_on_time < unix
+            if screen_on_time < unix:
                 screen_on_time = unix + 60 * 2 #wait 2 minutes
     else:
         if unix >= screen_on_time:
