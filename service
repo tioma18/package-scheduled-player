@@ -218,7 +218,9 @@ def screen_toggle():
         except Exception as ex1:
             print(ex1)
             device.restart_infobeamer()
-            screen_on_time = unix + 60 #wait a minute for infobeamer process to start
+            device.screen(on = False)
+            screen_state = False
+            screen_on_time = unix + 60 * 5 #wait 5 minutes for infobeamer process to start
     else:
         if unix >= screen_on_time:
             device.screen(on = True)
