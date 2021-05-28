@@ -217,6 +217,7 @@ def screen_toggle():
                     break
         except Exception as ex1:
             print >>sys.stderr, "CAUGHT"
+            device.screen(on = False)
             #screen_on_time = unix + 60 #wait a minute for infobeamer process to start
             time.sleep(60)
             device.reboot()
