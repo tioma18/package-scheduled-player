@@ -231,6 +231,7 @@ def screen_toggle():
             if hasInfobeamerProcessError:
                 rebootCount += 1
                 if rebootCount < 10:
+                    file.seek(0)
                     file.write(rebootCount)
                     file.close()
                     device.reboot()
@@ -293,7 +294,8 @@ if __name__ == "__main__":
     file = open("localConfig.txt", "w+")
     for line in file:
         rebootCount = int(line.strip('\n')
-    file.seek(0, 0)
+        print >>sys.stderr, "LOOOK rebootCount: %s" % rebootCount
+
     run_in_thread(send_time)
     run_in_thread(screen_toggle)
     run_in_thread(monitor_input)
