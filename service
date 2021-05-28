@@ -225,7 +225,7 @@ def screen_toggle():
             device.screen(on = False)
             hasInfobeamerProcessError = True
             if screen_on_time < unix:
-                screen_on_time = unix + 60 * 5 #wait 5 minutes
+                screen_on_time = unix + 60 * 1 #wait 5 minutes
     else:
         if unix >= screen_on_time:
             if hasInfobeamerProcessError:
@@ -291,13 +291,10 @@ if __name__ == "__main__":
     thr.start() # Will run "foo"
     thr.is_alive() # Will return whether foo is running currently
     
-    f=open('D:\\Emmanu\\project-data\\color.txt',"r")
-    for line in f:
-        g_colour_list.append(line.strip('\n'))
-    print g_colour_list
     file = open("localConfig.txt", "a")
     for line in file:
         rebootCount = int(line.strip('\n')
+    file.seek(0)
     run_in_thread(send_time)
     run_in_thread(screen_toggle)
     run_in_thread(monitor_input)
