@@ -189,13 +189,9 @@ def monitor_gpio():
             )))
 
 screen_state = True
-hasInfobeamerProcessError = False
 def screen_toggle():
     global screen_state
     global screen_on_time
-    global hasInfobeamerProcessError
-    global rebootCount
-    global file
 
     utc_now = datetime.now(pytz.utc)
     unix = timegm(utc_now.timetuple()) + utc_now.microsecond / 1000000.
@@ -205,14 +201,11 @@ def screen_toggle():
     print >>sys.stderr, "LOOOK: screen_on_time %s" % screen_on_time
     print >>sys.stderr, "LOOOK: local_now %s" % local_now
     print >>sys.stderr, "LOOOK: diff %s" % diff
-    print >>sys.stderr, "LOOOK: hasInfobeamerProcessError %s" % hasInfobeamerProcessError
-    print >>sys.stderr, "LOOOK rebootCount: %s" % rebootCount
     
     if screen_on_time == 0:
         try:
             ib = InfoBeamerQuery("127.0.0.1")
             con = ib.node('root/__fallback__').io(raw=True)
-            hasInfobeamerProcessError = False
             for line in con:
                 print >>sys.stderr, "LOOOK LINE ORIGINAL: %s" % line
                 line = int(float(line.strip())) - diff.seconds
@@ -225,20 +218,8 @@ def screen_toggle():
                     break
         except Exception as ex1:
             print >>sys.stderr, "CAUGHT"
-            device.screen(on = False)
-            hasInfobeamerProcessError = True
-            if screen_on_time < unix:
-                screen_on_time = unix + 60 * 1 #wait 5 minutes
     else:
         if unix >= screen_on_time:
-            if hasInfobeamerProcessError:
-                rebootCount += 1
-                if rebootCount < 10:
-                    file.seek(0)
-                    file.write(rebootCount)
-                    file.close()
-                    device.reboot()
-            
             device.screen(on = True)
             screen_state = True
             screen_on_time = 0
@@ -283,21 +264,12 @@ def init_websocket():
         except Exception as ex1:
             print(ex1)
 
-rebootCount = 0
-            
 if __name__ == "__main__":
-    global file
-    global rebootCount
     print >>sys.stderr, "MAIN"
     device.screen(on = True)
     thr = threading.Thread(target=init_websocket, args=(), kwargs={})
     thr.start() # Will run "foo"
     thr.is_alive() # Will return whether foo is running currently
-    
-    file = open("localConfig.txt", "w+")
-    for line in file:
-        rebootCount = int(line.strip('\n')
-        print >>sys.stderr, "LOOOK rebootCount: %s" % rebootCount
 
     run_in_thread(send_time)
     run_in_thread(screen_toggle)
