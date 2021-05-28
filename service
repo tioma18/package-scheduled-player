@@ -292,9 +292,9 @@ if __name__ == "__main__":
     thr.is_alive() # Will return whether foo is running currently
     
     file = open("localConfig.txt", "w+")
-    for line in file:
-        rebootCount = int(line.strip('\n')
-        print >>sys.stderr, "LOOOK rebootCount: %s" % rebootCount
+    #for line in file:
+        #rebootCount = int(line.strip('\n')
+        #print >>sys.stderr, "LOOOK rebootCount: %s" % rebootCount
 
     run_in_thread(send_time)
     run_in_thread(screen_toggle)
