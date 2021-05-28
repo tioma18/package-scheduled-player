@@ -194,6 +194,7 @@ def screen_toggle():
     global screen_state
     global screen_on_time
     global hasInfobeamerProcessError
+    global rebootCount
 
     utc_now = datetime.now(pytz.utc)
     unix = timegm(utc_now.timetuple()) + utc_now.microsecond / 1000000.
