@@ -221,9 +221,9 @@ def screen_toggle():
                     break
         except Exception as ex1:
             print >>sys.stderr, "CAUGHT"
+            if hasInfobeamerProcessError:
+                device.reboot()
             device.screen(on = False)
-                if hasInfobeamerProcessError:
-                    device.reboot()
             hasInfobeamerProcessError = True
             if screen_on_time < unix:
                 screen_on_time = unix + 60 * 2 #wait 2 minutes
