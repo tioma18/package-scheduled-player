@@ -279,7 +279,6 @@ def init_websocket():
         except Exception as ex1:
             print(ex1)
 
-file = None
 rebootCount = 0
             
 if __name__ == "__main__":
